@@ -61,7 +61,7 @@ static int dtls_read_from_peer(struct dtls_context_t *dtls_ctx,
 #else
     client_context_t *client = find_client(ctx, dtls_session);
     if (NULL!=client) {
-        //DBG("forward to backend=%d", client->backend_fd);
+        DBG("forward to backend=%d", client->backend_fd);
         return send(client->backend_fd, data, len, 0);
     }
     return -1;
@@ -113,7 +113,7 @@ static int dtls_event(struct dtls_context_t *dtls_ctx, session_t *dtls_session,
             return -1;
         }
         return 0;
-    case DTLS_EVENT_RENEGOTIATE:
+    case DTLS_ALERT_NO_RENEGOTIATION:
         DBG("%s: renegotiate", __func__);
         break;
     default:

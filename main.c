@@ -79,8 +79,10 @@ int main(int argc, char **argv)
     }
 
     signal(SIGINT, handle_sigint);
+    puts("run");
     proxy_run(&context);
 
+    puts("exit");
     proxy_deinit(&context);
     DBG("%s exit", argv[0]);
     return 0;

@@ -160,7 +160,7 @@ static int prepare_data_record(dtls_peer_t *peer, uint8 *data, size_t data_len,
         return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
     }
 
-    if (!security || security->cipher == TLS_NULL_WITH_NULL_NULL) {
+    if (!security || security->cipher_index == TLS_NULL_WITH_NULL_NULL) {
         return -1; // not supported
     }
 
