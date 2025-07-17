@@ -10,7 +10,7 @@ OBJECTS := $(patsubst %.c, %.o, $(SOURCES))
 INCLUDES := -I. -I$(LIBDTLS_DIR)
 DEFINES  :=
 CFLAGS   := $(INCLUDES) $(DEFINES) -Wall -O2 -g
-LFLAGS   := -L$(LIBDTLS_DIR) -ltinydtls -lev -static
+LFLAGS   := -L$(LIBDTLS_DIR) -ltinydtls -lev -lpthread -static
 
 all: $(LIBDTLS) $(PROGRAM)
 
