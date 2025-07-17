@@ -7,7 +7,7 @@
  * and Eclipse Distribution License v. 1.0 which accompanies this distribution.
  *
  * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -24,13 +24,41 @@
 #ifndef _DTLS_TINYDTLS_H_
 #define _DTLS_TINYDTLS_H_
 
-/** Defined to 1 if tinydtls is built with support for ECC */
-#define DTLS_ECC 1
+#ifdef RIOT_VERSION
+#include "platform-specific/riot_boards.h"
+#endif /* RIOT_VERSION */
 
-/** Defined to 1 if tinydtls is built with support for PSK */
-#define DTLS_PSK 1
+#ifdef CONTIKI
+#include "platform-specific/platform.h"
+#endif /* CONTIKI */
 
-/** Defined to 1 if tinydtls is built for Contiki OS */
-/* #undef WITH_CONTIKI */
+#if defined(_WIN32) || defined(_WIN64)
+#define IS_WINDOWS 1
+#define _CRT_RAND_S
+#endif
+
+#ifdef WITH_LWIP
+#include "platform-specific/lwip_platform.h"
+#endif /* WITH_LWIP */
+
+#ifndef WITH_LWIP
+#ifndef CONTIKI
+#ifndef RIOT_VERSION
+#ifndef IS_WINDOWS
+#ifndef WITH_POSIX
+/* TODO: To remove in a future */
+#define WITH_POSIX 1
+#endif /* WITH_POSIX */
+#endif /* IS_WINDOWS */
+#include "dtls_config.h"
+#endif /* RIOT_VERSION */
+#endif /* CONTIKI */
+#endif /* WITH_LWIP */
+
+#ifndef DTLS_ECC
+#ifndef DTLS_PSK
+#error "TinyDTLS requires at least one Cipher suite!"
+#endif /* DTLS_PSK */
+#endif /* DTLS_ECC */
 
 #endif /* _DTLS_TINYDTLS_H_ */

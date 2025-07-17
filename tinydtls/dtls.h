@@ -26,6 +26,8 @@
 
 #include <stdint.h>
 
+#include "tinydtls.h"
+
 #include "state.h"
 #include "peer.h"
 
@@ -116,6 +118,18 @@ typedef struct {
    */
   int (*event)(struct dtls_context_t *ctx, session_t *session, 
 		dtls_alert_level_t level, unsigned short code);
+
+  /**
+   * Called during handshake to get the user parameter.
+   *
+   * @param ctx     The current dtls context.
+   * @param session The session where the cipher suites will be used.
+   * @param parameters The pointer to user parameters.
+   *                   The user parameters are initialized with the default
+   *                   values.
+   */
+  void (*get_user_parameters)(struct dtls_context_t *ctx, session_t *session,
+        dtls_user_parameters_t *parameters);
 
 #ifdef DTLS_PSK
   /**
@@ -224,15 +238,13 @@ typedef struct dtls_context_t {
   void *app;			/**< application-specific data */
 
   dtls_handler_t *h;		/**< callback handlers */
-
-  unsigned char readbuf[DTLS_MAX_BUF];
 } dtls_context_t;
 
 /** 
  * This function initializes the tinyDTLS memory management and must
  * be called first.
  */
-void dtls_init();
+void dtls_init(void);
 
 /** 
  * Creates a new context object. The storage allocated for the new
@@ -264,9 +276,9 @@ int dtls_connect(dtls_context_t *ctx, const session_t *dst);
 
 /**
  * Establishes a DTLS channel with the specified remote peer.
- * This function returns @c 0 if that channel already exists, a value
- * greater than zero when a new ClientHello message was sent, and
- * a value less than zero on error.
+ * This function returns @c 0 if that channel already exists and a renegotiate
+ * was initiated, a value greater than zero when a new ClientHello message was
+ * sent, and a value less than zero on error.
  *
  * @param ctx    The DTLS context to use.
  * @param peer   The peer object that describes the session.
@@ -280,20 +292,36 @@ int dtls_connect_peer(dtls_context_t *ctx, dtls_peer_t *peer);
  */
 int dtls_close(dtls_context_t *ctx, const session_t *remote);
 
-int dtls_renegotiate(dtls_context_t *ctx, const session_t *dst);
+/**
+ * Writes the application data given in multiple buffers to the peer
+ * specified by @p session.
+ *
+ * @param ctx      The DTLS context to use.
+ * @param session  The remote transport address and local interface.
+ * @param buf_array     Array of buffers with the data to write.
+ * @param buf_len_array The length of the arrays in @p buf_array.
+ * @param buf_array_len The number of data arrays.
+ *
+ * @return The number of bytes written, @c -1 on error or @c 0
+ *         if the peer already exists but is not connected yet.
+ */
+int dtls_writev(struct dtls_context_t *ctx,
+		session_t *session, uint8 *buf_array[],
+		size_t buf_len_array[], size_t buf_array_len);
 
 /** 
  * Writes the application data given in @p buf to the peer specified
- * by @p session. 
+ * by @p session.
  * 
  * @param ctx      The DTLS context to use.
  * @param session  The remote transport address and local interface.
  * @param buf      The data to write.
  * @param len      The actual length of @p data.
  * 
- * @return The number of bytes written or @c -1 on error.
+ * @return The number of bytes written, @c -1 on error or @c 0
+ *         if the peer already exists but is not connected yet.
  */
-int dtls_write(struct dtls_context_t *ctx, session_t *session, 
+int dtls_write(struct dtls_context_t *ctx, session_t *session,
 	       uint8 *buf, size_t len);
 
 /**
@@ -314,8 +342,16 @@ void dtls_check_retransmit(dtls_context_t *context, clock_time_t *next);
 #define DTLS_CT_HANDSHAKE          22
 #define DTLS_CT_APPLICATION_DATA   23
 
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#elif defined(_MSC_VER)
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#else
+#error "Structure packing is not available for the used compiler."
+#endif
+
 /** Generic header structure of the DTLS record layer. */
-typedef struct __attribute__((__packed__)) {
+PACK(typedef struct) {
   uint8 content_type;		/**< content type of the included message */
   uint16 version;		/**< Protocol version */
   uint16 epoch;		        /**< counter for cipher state changes */
@@ -338,8 +374,13 @@ typedef struct __attribute__((__packed__)) {
 #define DTLS_HT_CLIENT_KEY_EXCHANGE 16
 #define DTLS_HT_FINISHED            20
 
+/**
+ * Pseudo handshake message type, if no optional handshake message is expected.
+ */
+#define DTLS_HT_NO_OPTIONAL_MESSAGE        -1
+
 /** Header structure for the DTLS handshake protocol. */
-typedef struct __attribute__((__packed__)) {
+PACK(typedef struct) {
   uint8 msg_type; /**< Type of handshake message  (one of DTLS_HT_) */
   uint24 length;  /**< length of this message */
   uint16 message_seq; 	/**< Message sequence number */
@@ -349,7 +390,7 @@ typedef struct __attribute__((__packed__)) {
 } dtls_handshake_header_t;
 
 /** Structure of the Client Hello message. */
-typedef struct __attribute__((__packed__)) {
+PACK(typedef struct) {
   uint16 version;	  /**< Client version */
   uint32 gmt_random;	  /**< GMT time of the random byte creation */
   unsigned char random[28];	/**< Client random bytes */
@@ -360,7 +401,7 @@ typedef struct __attribute__((__packed__)) {
 } dtls_client_hello_t;
 
 /** Structure of the Hello Verify Request. */
-typedef struct __attribute__((__packed__)) {
+PACK(typedef struct) {
   uint16 version;		/**< Server version */
   uint8 cookie_length;	/**< Length of the included cookie */
   uint8 cookie[];		/**< up to 32 bytes making up the cookie */

@@ -1,5 +1,5 @@
 /* dtls_config.h.  Generated from dtls_config.h.in by configure.  */
-/* dtls_config.h.in.  Generated from configure.in by autoheader.  */
+/* dtls_config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
@@ -22,15 +22,17 @@
 /* Define to 1 if you have the `fls' function. */
 /* #undef HAVE_FLS */
 
+/* Define to 1 if you have the `getrandom' function. */
+#define HAVE_GETRANDOM 1
+
+/* Define to 1 if you have the `inet_ntop' function. */
+#define HAVE_INET_NTOP 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
-#define HAVE_MALLOC 1
-
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
+/* Define if the system has libcunit */
+/* #undef HAVE_LIBCUNIT */
 
 /* Define to 1 if you have the `memset' function. */
 #define HAVE_MEMSET 1
@@ -40,6 +42,9 @@
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #define HAVE_NETINET_IN_H 1
+
+/* Define to 1 if you have the `random' function. */
+#define HAVE_RANDOM 1
 
 /* Define to 1 if you have the `select' function. */
 #define HAVE_SELECT 1
@@ -55,6 +60,9 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
@@ -111,16 +119,18 @@
 #define PACKAGE_TARNAME "tinydtls"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define PACKAGE_URL "https://projects.eclipse.org/projects/iot.tinydtls"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.8.6"
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
 
-/* Define to 1 if building for Contiki. */
-/* #undef WITH_CONTIKI */
+/* Define to include test wrappers for static functions */
+/* #undef TEST_INCLUDE */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -140,13 +150,5 @@
 /* #undef inline */
 #endif
 
-/* Define to rpl_malloc if the replacement function should be used. */
-/* #undef malloc */
-
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
-
-
-#ifdef WITH_CONTIKI
-#include "platform-specific/platform.h"
-#endif

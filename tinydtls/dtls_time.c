@@ -20,8 +20,12 @@
  */
 
 #include "tinydtls.h"
-#include "dtls_config.h"
 #include "dtls_time.h"
+
+#ifdef _MSC_VER
+#include <time.h>
+#include <windows.h>
+#endif
 
 #ifdef WITH_CONTIKI
 clock_time_t dtls_clock_offset;
@@ -37,7 +41,43 @@ dtls_ticks(dtls_tick_t *t) {
   *t = clock_time();
 }
 
-#else /* WITH_CONTIKI */
+#elif defined(RIOT_VERSION)
+
+dtls_tick_t dtls_clock_offset;
+
+void
+dtls_clock_init(void) {
+  dtls_clock_offset = ztimer_now(ZTIMER_MSEC);
+}
+
+void
+dtls_ticks(dtls_tick_t *t) {
+  *t = ztimer_now(ZTIMER_MSEC) - dtls_clock_offset;
+}
+
+#elif defined(WITH_ZEPHYR)
+
+void
+dtls_clock_init(void) {
+}
+
+void
+dtls_ticks(dtls_tick_t *t) {
+  *t = k_uptime_get();
+}
+
+#elif defined(WITH_LWIP)
+
+void
+dtls_clock_init(void) {
+}
+
+void
+dtls_ticks(dtls_tick_t *t) {
+  *t = sys_now();
+}
+
+#elif defined(WITH_POSIX) || defined(IS_WINDOWS)
 
 time_t dtls_clock_offset;
 
@@ -61,11 +101,17 @@ void dtls_ticks(dtls_tick_t *t) {
   gettimeofday(&tv, NULL);
   *t = (tv.tv_sec - dtls_clock_offset) * DTLS_TICKS_PER_SECOND 
     + (tv.tv_usec * DTLS_TICKS_PER_SECOND / 1000000);
+
+#elif defined(_MSC_VER)
+
+  SYSTEMTIME current_time;
+  GetSystemTime(&current_time);
+  *t = (current_time.wSecond - dtls_clock_offset) * DTLS_TICKS_PER_SECOND 
+    + (current_time.wMilliseconds * DTLS_TICKS_PER_SECOND / 1000);
+
 #else
 #error "clock not implemented"
 #endif
 }
 
-#endif /* WITH_CONTIKI */
-
-
+#endif /* ! CONTIKI && ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */
